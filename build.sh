@@ -16,5 +16,5 @@ if [[ -n "$DJANGO_SUPERUSER_USERNAME" ]]; then
     echo "Creating superuser..."
     # --noinput: 対話⼊⼒をスキップ
     # || true: すでにユーザーが存在してエラーになっても、無視して次へ進む
-    python manage.py createsuperuser --noinput || echo "Superuser already exists.”
+    python manage.py createsuperuser --noinput || echo "Superuser already exists."
 fi
