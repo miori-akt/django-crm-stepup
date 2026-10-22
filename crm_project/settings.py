@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +28,9 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get('SECRET_KEY') # .env から読み込むように変更
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -46,12 +47,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    
 ]
 
 ROOT_URLCONF = "crm_project.urls"
@@ -84,6 +87,9 @@ DATABASES = {
     }
 }
 
+# もし環境変数 DATABASE_URL があれば（本番環境）、それを使う設定で上書きする
+db_from_env = dj_database_url.config(conn_max_age=600)
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -121,7 +127,23 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# 1. 開発中に static フォルダに置いたファイルを集める場所
+STATICFILES_DIRS = [BASE_DIR / "static"]
+# (もし static フォルダを作っていない場合は、空リスト [] でもOK、またはフォルダを作成)
+
+# 2. 本番環境で、全アプリの静的ファイルを集約する場所
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 3. WhiteNoiseが圧縮して配信するための設定
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ログイン後にリダイレクトする先のURL名
+LOGIN_REDIRECT_URL = 'customer_list'
+
+# ログアウト後にリダイレクトする先のURL名
+LOGOUT_REDIRECT_URL = 'login' # ログアウトしたらログインページに⾶ばす
